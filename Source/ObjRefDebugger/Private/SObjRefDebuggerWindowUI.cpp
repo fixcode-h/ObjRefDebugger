@@ -833,7 +833,7 @@ FReply SObjRefDebuggerWindow::OnSearchClicked()
 		
 	if (CurrentClassNames.Num() > 0 && !bIsSearching)
 	{
-		// 生成缓存键
+		// 生成缓存键并清除缓存以强制重新搜索
 		TArray<FString> ClassNameStrings;
 		for (const TSharedPtr<FString>& ClassName : CurrentClassNames)
 		{
@@ -846,28 +846,9 @@ FReply SObjRefDebuggerWindow::OnSearchClicked()
 		FString CacheKey = FString::Join(ClassNameStrings, TEXT(","));
 		UE_LOG(LogTemp, Log, TEXT("生成的缓存键: %s"), *CacheKey);
 		
-		// 检查缓存
-		if (CachedSearchResults.Contains(CacheKey))
-		{
-			UE_LOG(LogTemp, Log, TEXT("使用缓存结果"));
-			ObjectInstances = CachedSearchResults[CacheKey];
-			UE_LOG(LogTemp, Log, TEXT("缓存结果包含 %d 个对象实例"), ObjectInstances.Num());
-			
-			if (ObjectListView.IsValid())
-			{
-				ObjectListView->RequestListRefresh();
-				UE_LOG(LogTemp, Log, TEXT("ObjectListView 刷新完成"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("ObjectListView 无效"));
-			}
-			
-			CalculateStatistics();
-			UpdateStatisticsDisplay();
-			UE_LOG(LogTemp, Log, TEXT("统计信息和显示已更新"));
-			return FReply::Handled();
-		}
+		// 清除缓存强制重新搜索
+		CachedSearchResults.Remove(CacheKey);
+		UE_LOG(LogTemp, Log, TEXT("已清除缓存，强制重新搜索"));
 
 		// 启动异步搜索
 		UE_LOG(LogTemp, Log, TEXT("启动多类搜索"));

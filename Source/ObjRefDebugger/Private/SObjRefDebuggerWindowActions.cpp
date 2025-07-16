@@ -211,22 +211,8 @@ FReply SObjRefDebuggerWindow::OnClearResultsClicked()
 
 FReply SObjRefDebuggerWindow::OnRefreshClicked()
 {
-	if (CurrentClassNames.Num() > 0 && !bIsSearching)
-	{
-		// 清除缓存强制重新搜索
-		TArray<FString> ClassNameStrings;
-		for (const TSharedPtr<FString>& ClassName : CurrentClassNames)
-		{
-			if (ClassName.IsValid())
-			{
-				ClassNameStrings.Add(*ClassName);
-			}
-		}
-		FString CacheKey = FString::Join(ClassNameStrings, TEXT(","));
-		CachedSearchResults.Remove(CacheKey);
-		return OnSearchClicked();
-	}
-	return FReply::Handled();
+	// OnSearchClicked 现在已经包含清除缓存的逻辑，直接调用即可
+	return OnSearchClicked();
 }
 
 FReply SObjRefDebuggerWindow::OnExportResultsClicked()
