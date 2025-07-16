@@ -104,11 +104,6 @@ void SObjRefDebuggerClassPicker::OnClassPickedInternal(UClass* InClass)
 
 FText SObjRefDebuggerClassPicker::GetButtonText() const
 {
-	if (CurrentSelectedClass)
-	{
-		return FText::FromString(CurrentSelectedClass->GetName());
-	}
-	
 	return LOCTEXT("SelectClass", "选择类...");
 }
 
