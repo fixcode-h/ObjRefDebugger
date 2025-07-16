@@ -194,10 +194,17 @@ FReply SObjRefDebuggerWindow::OnClearResultsClicked()
 	ReferenceChainRoots.Empty();
 	CurrentStatistics.Reset();
 	
+	// 清除所有缓存
+	CachedSearchResults.Empty();
+	CachedReferencers.Empty();
+	CachedReferenceChains.Empty();
+	
 	ObjectListView->RequestListRefresh();
 	ReferencerListView->RequestListRefresh();
 	ReferenceChainTreeView->RequestTreeRefresh();
 	UpdateStatisticsDisplay();
+	
+	UE_LOG(LogTemp, Log, TEXT("清除了所有结果和缓存"));
 	
 	return FReply::Handled();
 }

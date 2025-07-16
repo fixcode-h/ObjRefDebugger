@@ -924,16 +924,7 @@ void SObjRefDebuggerWindow::OnClassSelected(UClass* SelectedClass)
 				UE_LOG(LogTemp, Warning, TEXT("SelectedClassListView 无效"));
 			}
 			
-			// 自动开始搜索
-			if (!bIsSearching)
-			{
-				UE_LOG(LogTemp, Log, TEXT("开始搜索"));
-				OnSearchClicked();
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("正在搜索中，跳过新搜索"));
-			}
+			// 不自动搜索，等用户手动点击搜索按钮
 		}
 	}
 	else
@@ -950,14 +941,45 @@ void SObjRefDebuggerWindow::OnObjectSelectionChanged(TSharedPtr<FObjectListItem>
 	
 	if (SelectedItem.IsValid() && IsValid(SelectedItem->Object))
 	{
-		// 查找引用者
-		FindObjectReferencers(SelectedItem->Object, ReferencerInfos);
+		UObject* TargetObject = SelectedItem->Object;
+		UE_LOG(LogTemp, Log, TEXT("选择了对象: %s"), *TargetObject->GetName());
+		
+		// 检查引用者缓存
+		if (CachedReferencers.Contains(TargetObject))
+		{
+			UE_LOG(LogTemp, Log, TEXT("使用缓存的引用者信息"));
+			ReferencerInfos = CachedReferencers[TargetObject];
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("查找对象引用者"));
+			// 查找引用者
+			FindObjectReferencers(TargetObject, ReferencerInfos);
+			// 缓存结果
+			CachedReferencers.Add(TargetObject, ReferencerInfos);
+		}
 		
 		// 构建引用链（如果启用）
 		if (CurrentFilterOptions.bShowReferenceChain)
 		{
-			BuildReferenceChainToRoot(SelectedItem->Object, ReferenceChainRoots);
+			// 检查引用链缓存
+			if (CachedReferenceChains.Contains(TargetObject))
+			{
+				UE_LOG(LogTemp, Log, TEXT("使用缓存的引用链信息"));
+				ReferenceChainRoots = CachedReferenceChains[TargetObject];
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("构建引用链到GC根"));
+				BuildReferenceChainToRoot(TargetObject, ReferenceChainRoots);
+				// 缓存结果
+				CachedReferenceChains.Add(TargetObject, ReferenceChainRoots);
+			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("未选择有效对象"));
 	}
 	
 	ReferencerListView->RequestListRefresh();
@@ -1081,20 +1103,13 @@ void SObjRefDebuggerWindow::RemoveSelectedClass(const FString& ClassName)
 		UE_LOG(LogTemp, Warning, TEXT("SelectedClassListView 无效"));
 	}
 	
-	// 如果还有类，则重新搜索；否则清除结果
-	if (CurrentClassNames.Num() > 0)
-	{
-		UE_LOG(LogTemp, Log, TEXT("还有其他类，重新搜索"));
-		if (!bIsSearching)
-		{
-			OnSearchClicked();
-		}
-	}
-	else
+	// 如果没有类了，清除搜索结果，但不自动重新搜索
+	if (CurrentClassNames.Num() == 0)
 	{
 		UE_LOG(LogTemp, Log, TEXT("没有类了，清除搜索结果"));
 		OnClearResultsClicked();
 	}
+	// 如果还有类，等用户手动点击搜索按钮
 }
 
 #undef LOCTEXT_NAMESPACE 

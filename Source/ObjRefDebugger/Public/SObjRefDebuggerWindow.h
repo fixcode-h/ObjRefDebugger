@@ -215,6 +215,8 @@ private:
 	
 	bool bIsSearching;
 	TMap<FString, TArray<TSharedPtr<FObjectListItem>>> CachedSearchResults;
+	TMap<UObject*, TArray<TSharedPtr<FReferencerInfo>>> CachedReferencers;
+	TMap<UObject*, TArray<TSharedPtr<FReferenceChainNode>>> CachedReferenceChains;
 	float LastSearchTime;
 	FDateTime LastRefreshTime;
 	
